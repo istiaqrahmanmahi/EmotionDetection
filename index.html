@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Emotion Detector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .background-blobs {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 400px;
+            height: 400px;
+            background: #8b5cf6;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: #ec4899;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 50px) scale(1.1); }
+        }
+
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: translateY(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-weight: 600;
+            font-size: 2rem;
+            text-align: center;
+            background: linear-gradient(to right, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px -10px var(--primary);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .result-card {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            display: none;
+            animation: fadeIn 0.5s ease forwards;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .emoji {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .emotion-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            margin-bottom: 5px;
+        }
+
+        .confidence {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .loader {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .button-text {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="container">
+        <h1>AI Emotion Detector</h1>
+        <p class="subtitle">Discover the hidden feelings in your text</p>
+
+        <textarea id="textInput" placeholder="Type something here... (e.g., I am so excited for this!)"></textarea>
+        
+        <button id="predictBtn" onclick="analyzeEmotion()">
+            <span class="button-text">Analyze Emotion</span>
+            <div class="loader" id="loader"></div>
+        </button>
+
+        <div class="result-card" id="resultCard">
+            <span class="emoji" id="emojiDisplay">🤖</span>
+            <div class="emotion-name" id="emotionName">Unknown</div>
+            <div class="confidence" id="confidenceBar">Confidence: 0%</div>
+        </div>
+    </div>
+
+    <script>
+        const emotionToEmoji = {
+            'joy': '✨😄✨',
+            'sadness': '🌧️😢',
+            'anger': '🔥😡',
+            'fear': '😨👻',
+            'love': '💖😍',
+            'surprise': '😲🎉',
+            'Unknown': '🤖'
+        };
+
+        const emotionColors = {
+            'joy': '#fcd34d',
+            'sadness': '#93c5fd',
+            'anger': '#fca5a5',
+            'fear': '#c4b5fd',
+            'love': '#f9a8d4',
+            'surprise': '#fdba74',
+            'Unknown': '#e2e8f0'
+        };
+
+        async function analyzeEmotion() {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) return;
+
+            const btnText = document.querySelector('.button-text');
+            const loader = document.getElementById('loader');
+            const resultCard = document.getElementById('resultCard');
+            const emotionNameEl = document.getElementById('emotionName');
+            
+            // Show loader
+            btnText.style.display = 'none';
+            loader.style.display = 'block';
+            resultCard.style.display = 'none';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    const emotion = data.emotion;
+                    const confidence = (data.confidence * 100).toFixed(1);
+                    
+                    document.getElementById('emojiDisplay').innerText = emotionToEmoji[emotion] || '🤖';
+                    emotionNameEl.innerText = emotion;
+                    emotionNameEl.style.color = emotionColors[emotion] || '#ffffff';
+                    document.getElementById('confidenceBar').innerText = `Confidence: ${confidence}%`;
+                    
+                    resultCard.style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Something went wrong!");
+            } finally {
+                // Hide loader
+                btnText.style.display = 'inline-block';
+                loader.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
