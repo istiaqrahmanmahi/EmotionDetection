@@ -10,4 +10,4 @@ COPY . .
 # Run train.py to generate the model during build time (optional, if model is not pushed to git)
 # RUN python train.py
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD uvicorn app:app --host 0.0.0.0 --port ${PORT:-10000}
