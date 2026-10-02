@@ -33,7 +33,7 @@ def predict_emotion(input_data: TextInput):
         return {"error": "Model not loaded. Please run train.py first."}
     
     # Prediction
-    prediction = model.predict(np.array([input_data.text]))
+    prediction = model.predict(tf.constant([input_data.text], dtype=tf.string))
     predicted_index = int(np.argmax(prediction[0]))
     predicted_emotion = index_to_label.get(predicted_index, "Unknown")
     confidence = float(prediction[0][predicted_index])
